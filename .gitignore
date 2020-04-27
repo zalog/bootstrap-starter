@@ -1,0 +1,17 @@
+# Editor: vscode
+.vscode/*
+# Editor: vim
+*.swo
+
+# OS
+**/.DS_Store
+
+# npm & yarn
+node_modules
+yarn.lock
+
+# Builds
+dist/**/*
+
+# Coverage directory used by tools like istanbul
+coverage
