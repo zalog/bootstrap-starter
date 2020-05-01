@@ -1,6 +1,7 @@
 'use strict';
 
 const gulp = require('gulp');
+const babel = require('gulp-babel');
 const csscompile = require('gulp-sass');
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
@@ -57,6 +58,10 @@ const clean = () => del(
 const html = () => gulp.src(`${config.src}/*.html`)
     .pipe(gulp.dest(config.dist));
 
+const js = () => gulp.src(`${config.src}/js/**/*.js`)
+    .pipe(babel())
+    .pipe(gulp.dest(`${config.dist}/js/`));
+
 const cssCompile = () => gulp.src(`${config.src}/scss/compile.scss`)
     .pipe(csscompile({includePaths: ['./node_modules/']}))
     .pipe(rename('style.css'))
@@ -81,17 +86,22 @@ const serve = () => browsersync.init({
 });
 
 const watch = () => {
-    gulp.watch(`${config.src}/*.html`).on('change', copyFile);
-    gulp.watch(`${config.src}/scss/**/*`).on('change', cssCompile);
+    gulp.watch(`${config.src}/*.html`)
+        .on('change', copyFile);
+    gulp.watch(`${config.src}/js/**/*.js`)
+        .on('change', gulp.series(js));
+    gulp.watch(`${config.src}/scss/**/*`)
+        .on('change', gulp.series(cssCompile));
 
-    gulp.watch(`${config.dist}/*.html`).on('change', browsersync.reload);
+    gulp.watch(`${config.dist}/*.html`)
+        .on('change', browsersync.reload);
 };
 
 
 
 // grouped tasks by use case
-const dev = gulp.parallel(html, cssCompile);
-const build = gulp.series(clean, html, css);
+const dev = gulp.parallel(html, js, cssCompile);
+const build = gulp.series(clean, html, js, css);
 
 
 
