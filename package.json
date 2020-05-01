@@ -11,6 +11,8 @@
   "author": "Zalog (https://www.zalog.ro/)",
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
     "autoprefixer": "^9.7.4",
     "browser-sync": "^2.26.7",
     "cssnano": "^4.1.10",
