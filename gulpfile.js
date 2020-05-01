@@ -93,7 +93,7 @@ const watch = () => {
     gulp.watch(`${config.src}/scss/**/*`)
         .on('change', gulp.series(cssCompile));
 
-    gulp.watch(`${config.dist}/*.html`)
+    gulp.watch([`${config.dist}/*.html`, `${config.dist}/js/**/*.js`])
         .on('change', browsersync.reload);
 };
 
