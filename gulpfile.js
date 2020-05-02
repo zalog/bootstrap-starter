@@ -2,14 +2,13 @@
 
 const gulp = require('gulp');
 const babel = require('gulp-babel');
-const csscompile = require('gulp-sass');
+const sass = require('gulp-sass');
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
-const cssnano = require('cssnano');
+const cleancss = require('gulp-clean-css');
 const header = require('gulp-header');
-const rename = require('gulp-rename');
 const del = require('del');
-const browsersync = require('browser-sync').create();
+const browserSync = require('browser-sync').create();
 const gulputil = require('gulp-util');
 
 const packageJson = require('./package.json');
@@ -48,7 +47,7 @@ const copyFile = (file) => {
         .on('end', () => gulputil.log('Finished', `'${gulputil.colors.cyan('copyFile')}'`, file));
 };
 
-
+const isProduction = (process.env.NODE_ENV === 'production') ? true : false;
 
 const clean = () => del(
     [`${config.dist}/**/*`],
@@ -62,23 +61,29 @@ const js = () => gulp.src(`${config.src}/js/**/*.js`)
     .pipe(babel())
     .pipe(gulp.dest(`${config.dist}/js/`));
 
-const cssCompile = () => gulp.src(`${config.src}/scss/compile.scss`)
-    .pipe(csscompile({includePaths: ['./node_modules/']}))
-    .pipe(rename('style.css'))
-    .pipe(gulp.dest(`${config.dist}/css/`))
-    .pipe(browsersync.stream());
+const css = () => {
+    let stream = gulp.src(`${config.src}/scss/**/*.scss`)
+        .pipe(sass({
+            includePaths: ['./node_modules/']
+        }).on('error', sass.logError))
+        .pipe(postcss([
+            autoprefixer()
+        ]));
 
-const cssOptimize = () => gulp.src(`${config.dist}/css/style.css`)
-    .pipe(postcss([
-        autoprefixer(),
-        cssnano()
-    ]))
-    .pipe(header(banner))
-    .pipe(gulp.dest(`${config.dist}/css/`));
+    if (isProduction) stream = stream
+        .pipe(cleancss({
+            level: 1
+        }))
+        .pipe(header(banner));
 
-const css = gulp.series(cssCompile, cssOptimize);
+    stream
+        .pipe(gulp.dest(`${config.dist}/css/`))
+        .pipe(browserSync.stream());
 
-const serve = () => browsersync.init({
+    return stream;
+};
+
+const serve = () => browserSync.init({
     server: config.dist,
     notify: false,
     reloadDelay: 500,
@@ -91,16 +96,14 @@ const watch = () => {
     gulp.watch(`${config.src}/js/**/*.js`)
         .on('change', gulp.series(js));
     gulp.watch(`${config.src}/scss/**/*`)
-        .on('change', gulp.series(cssCompile));
+        .on('change', gulp.series(css));
 
     gulp.watch([`${config.dest}/**/*`, `!${config.dest}/**/*.css`])
-        .on('change', gulp.series(browsersync.reload));
+        .on('change', gulp.series(browserSync.reload));
 };
 
 
 
-// grouped tasks by use case
-const dev = gulp.parallel(html, js, cssCompile);
 const build = gulp.series(clean, html, js, css);
 
 
@@ -108,6 +111,6 @@ const build = gulp.series(clean, html, js, css);
 exports.build = build;
 exports.serve = serve;
 exports.default = gulp.parallel(
-    gulp.series(dev, serve),
+    gulp.series(build, serve),
     watch
 );
