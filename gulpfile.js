@@ -1,7 +1,7 @@
 'use strict';
 
 const gulp = require('gulp');
-const babel = require('gulp-babel');
+const webpack = require('webpack-stream');
 const sass = require('gulp-sass');
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
@@ -58,7 +58,20 @@ const html = () => gulp.src(`${config.src}/*.html`)
     .pipe(gulp.dest(config.dist));
 
 const js = () => gulp.src(`${config.src}/js/**/*.js`)
-    .pipe(babel())
+    .pipe(webpack({
+        mode: isProduction && 'production' || 'development',
+        output: {
+            filename: '[name].js',
+            chunkFilename: '[name]-chunk.js'
+        },
+        module: {
+            rules: [{
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: ['babel-loader']
+            }]
+        }
+    }))
     .pipe(gulp.dest(`${config.dist}/js/`));
 
 const css = () => {
