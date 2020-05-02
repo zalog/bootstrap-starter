@@ -98,6 +98,7 @@ const css = () => {
 
 const serve = () => browserSync.init({
     server: config.dist,
+    files: `${config.dist}/**/*`,
     notify: false,
     reloadDelay: 500,
     ghostMode: false
@@ -110,9 +111,6 @@ const watch = () => {
         .on('change', gulp.series(js));
     gulp.watch(`${config.src}/scss/**/*`)
         .on('change', gulp.series(css));
-
-    gulp.watch([`${config.dest}/**/*`, `!${config.dest}/**/*.css`])
-        .on('change', gulp.series(browserSync.reload));
 };
 
 
